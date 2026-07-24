@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Color is now consistent and honest across the CLI. Success `✓` marks
+  (`scheduled`/`paused`/`resumed`/`removed`), `doctor`'s `✓`/`✗` checks and
+  summary, and `run`'s exit line all pick up green/red — matching what `list`
+  already did. A new `Every::Color` helper centralizes the ANSI so it's applied
+  the same way everywhere, and it **respects [`NO_COLOR`](https://no-color.org)
+  and `TERM=dumb`, and never colors non-TTY output** (pipes, files, CI logs stay
+  clean). Color is only ever a hint — every message still reads with the codes
+  stripped.
+
 ## 0.1.2 — 2026-07-24
 
 Dogfooding pass — small fixes from actually using it.

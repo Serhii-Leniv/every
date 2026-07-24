@@ -102,7 +102,7 @@ module Every
         raise "could not schedule #{name}: #{e.message}"
       end
 
-      puts "✓ scheduled #{name}: #{schedule.raw} — #{cmd}"
+      puts "#{Color.green('✓')} scheduled #{name}: #{schedule.raw} — #{cmd}"
       nxt = schedule.next_run
       puts "  next run: #{nxt.strftime('%a %d %b %H:%M')}" if nxt
       puts "  runs every #{schedule.human_interval} while the machine is awake" if schedule.interval
@@ -163,10 +163,10 @@ module Every
 
     def print_row(cells, widths, colorize: false)
       out = cells.each_with_index.map { |c, i| c.to_s.ljust(widths[i]) }.join("  ")
-      if colorize && $stdout.tty?
-        out = out.sub(/\bok\b/, "\e[32mok\e[0m")
-        out = out.sub(/\bFAIL\(\d+\)/) { |m| "\e[31m#{m}\e[0m" }
-        out = out.sub(/\bunscheduled\b/, "\e[31munscheduled\e[0m")
+      if colorize
+        out = out.sub(/\bok\b/) { |m| Color.green(m) }
+        out = out.sub(/\bFAIL\(\d+\)/) { |m| Color.red(m) }
+        out = out.sub(/\bunscheduled\b/) { |m| Color.red(m) }
       end
       puts out
     end
@@ -201,7 +201,7 @@ module Every
       backend.disable(name)
       backend.delete_units(name)
       store.remove(name)
-      puts "✓ removed #{name} (logs kept in #{LOG_DIR})"
+      puts "#{Color.green('✓')} removed #{name} (logs kept in #{LOG_DIR})"
     end
 
     def pause(name)
@@ -213,7 +213,7 @@ module Every
       end
       backend.disable(name)
       store.update(name, "paused" => true)
-      puts "✓ paused #{name}"
+      puts "#{Color.green('✓')} paused #{name}"
     end
 
     def resume(name)
@@ -228,7 +228,7 @@ module Every
       backend.write(name, Schedule.from_h(task["schedule"]))
       backend.enable(name)
       store.update(name, "paused" => false)
-      puts "✓ resumed #{name}"
+      puts "#{Color.green('✓')} resumed #{name}"
     end
 
     # ---- helpers ----

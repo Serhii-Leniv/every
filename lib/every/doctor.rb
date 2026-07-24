@@ -94,25 +94,25 @@ module Every
             puts "    Full Disk Access (System Settings → Privacy & Security) to touch that folder"
           end
         else
-          puts "  ✓ last run ok (#{last['ts']})"
+          puts "  #{Color.green('✓')} last run ok (#{last['ts']})"
         end
       end
 
       puts
       if failures.zero?
-        puts "all good ✓"
+        puts Color.green("all good ✓")
       else
-        puts "#{failures} problem(s) found"
+        puts Color.red("#{failures} problem(s) found")
         exit 1
       end
     end
 
     def report(label, ok, fix)
       if ok
-        puts "  ✓ #{label}"
+        puts "  #{Color.green('✓')} #{label}"
         0
       else
-        puts "  ✗ #{label}"
+        puts "  #{Color.red('✗')} #{label}"
         puts "    → #{fix}"
         1
       end

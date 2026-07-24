@@ -18,6 +18,7 @@ module Every
   AGENTS_DIR = File.expand_path("~/Library/LaunchAgents")
 end
 
+require "every/color"
 require "every/tail"
 require "every/schedule"
 require "every/store"

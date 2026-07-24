@@ -42,7 +42,8 @@ module Every
 
       if $stdout.tty?
         print out
-        puts "— exit #{exit_code} in #{duration}s (logged: every log #{name})"
+        tail = "— exit #{exit_code} in #{duration}s (logged: every log #{name})"
+        puts(exit_code.zero? ? Color.green(tail) : Color.red(tail))
       end
       exit exit_code
     end
