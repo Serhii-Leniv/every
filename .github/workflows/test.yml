@@ -37,15 +37,6 @@ jobs:
           ruby test/runtime_test.rb
           ruby test/cli_test.rb
       # Validate every generated OnCalendar expression with real systemd.
+      # (Same script the `docker` workflow runs in a pinned container.)
       - name: systemd-analyze calendar validation
-        run: |
-          ruby -Ilib -revery -e '
-            ["day 9am", "day 9am,6pm", "weekdays 9:30", "weekends 11am",
-             "monday 10:00", "monday,thursday 6pm"].each do |raw|
-              s = Every::Schedule.parse(raw.split)
-              Every::Systemd.calendar_lines(s).each do |c|
-                system("systemd-analyze", "calendar", c) or abort("invalid: #{c}")
-              end
-            end
-            puts "all calendar expressions valid"
-          '
+        run: ruby test/systemd_calendar_check.rb

@@ -1,0 +1,21 @@
+name: docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  systemd-calendar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Build a pinned Ruby + systemd-analyze image (see test/docker/Dockerfile).
+      - name: Build systemd image
+        run: docker build -t every-systemd -f test/docker/Dockerfile test/docker
+      # Run the OnCalendar validation inside the container, against a real
+      # systemd-analyze, with the repo mounted read-only.
+      - name: Validate OnCalendar expressions
+        run: |
+          docker run --rm -v "$PWD:/app:ro" -w /app every-systemd \
+            ruby test/systemd_calendar_check.rb
