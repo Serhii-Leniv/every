@@ -18,11 +18,13 @@ module Every
       "\e[#{CODES.fetch(name)}m#{text}\e[0m"
     end
 
-    def green(text, **kw)  = paint(:green, text, **kw)
-    def red(text, **kw)    = paint(:red, text, **kw)
-    def yellow(text, **kw) = paint(:yellow, text, **kw)
-    def dim(text, **kw)    = paint(:dim, text, **kw)
-    def bold(text, **kw)   = paint(:bold, text, **kw)
+    # Classic `def`s (not endless `def x = ...`): macOS ships system Ruby 2.6,
+    # the floor this gem supports, and endless methods are a 3.0+ syntax.
+    def green(text, **kw)  ; paint(:green, text, **kw)  ; end
+    def red(text, **kw)    ; paint(:red, text, **kw)    ; end
+    def yellow(text, **kw) ; paint(:yellow, text, **kw) ; end
+    def dim(text, **kw)    ; paint(:dim, text, **kw)    ; end
+    def bold(text, **kw)   ; paint(:bold, text, **kw)   ; end
 
     def enabled?(io = $stdout)
       io.respond_to?(:tty?) && io.tty? &&
