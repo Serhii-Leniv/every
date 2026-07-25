@@ -208,7 +208,9 @@ download() {
     [ -d "$d" ] || continue
     SRC=$d
   done
-  [ -n "$SRC" ] && [ -f "$SRC/lib/every.rb" ] || die "unexpected tarball layout for $REF"
+  if [ -z "$SRC" ] || [ ! -f "$SRC/lib/every.rb" ]; then
+    die "unexpected tarball layout for $REF"
+  fi
 }
 
 fetch() {
@@ -253,10 +255,12 @@ preflight() {
     *) warn "$(uname -s) isn't a supported platform — every schedules through launchd or systemd" ;;
   esac
 
-  mkdir -p "$PREFIX/bin" "$PREFIX/lib" 2>/dev/null ||
-    die "can't write to $PREFIX — re-run with sudo, or install for yourself: --prefix ~/.local"
-  [ -w "$PREFIX/bin" ] && [ -w "$PREFIX/lib" ] ||
-    die "can't write to $PREFIX — re-run with sudo, or install for yourself: --prefix ~/.local"
+  # Fail before anything is written, not halfway through a cp.
+  no_write="can't write to $PREFIX — re-run with sudo, or install for yourself: --prefix ~/.local"
+  mkdir -p "$PREFIX/bin" "$PREFIX/lib" 2>/dev/null || die "$no_write"
+  if [ ! -w "$PREFIX/bin" ] || [ ! -w "$PREFIX/lib" ]; then
+    die "$no_write"
+  fi
 }
 
 # ---- install -------------------------------------------------------------
