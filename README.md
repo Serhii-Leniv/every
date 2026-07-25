@@ -63,19 +63,43 @@ interface and a memory.
 
 ## Install
 
+**macOS** — Homebrew:
+
 ```bash
 brew tap serhii-leniv/tap && brew trust serhii-leniv/tap && brew install every
 ```
 
-or from source:
+**Linux** — one line, no sudo (installs into `~/.local`):
 
 ```bash
-git clone https://github.com/Serhii-Leniv/every.git
-ln -s "$PWD/every/bin/every" /usr/local/bin/every
+curl -fsSL https://raw.githubusercontent.com/Serhii-Leniv/every/main/install.sh | sh
 ```
 
-Zero dependencies. Runs on the Ruby already inside macOS. The Homebrew install
-also sets up `man every` and tab completion for bash, zsh, and fish.
+<details>
+<summary>Options: system-wide, a pinned version, uninstall</summary>
+
+```bash
+# system-wide
+curl -fsSL …/install.sh | sudo sh -s -- --prefix /usr/local
+
+# somewhere else, or a specific release
+curl -fsSL …/install.sh | sh -s -- --prefix ~/opt --version v0.2.0
+
+# from a checkout (same flags)
+git clone https://github.com/Serhii-Leniv/every.git && ./every/install.sh
+
+# uninstall (tasks and logs are kept; it won't strand a live timer)
+curl -fsSL …/install.sh | sh -s -- --uninstall
+```
+
+Re-running the installer upgrades in place. Scheduled tasks keep working
+across an upgrade — units point at `<prefix>/bin/every`, which stays put.
+
+</details>
+
+Zero dependencies: `every` needs only a Ruby 2.6+ (already inside macOS; `apt
+install ruby` and friends on Linux). Both installs set up `man every` and tab
+completion for bash, zsh, and fish.
 
 ## Schedules
 
@@ -141,8 +165,9 @@ Follows `sysexits.h`, so scripts can branch on `$?`:
   data dir — see [DECISIONS.md](DECISIONS.md) for design notes.
 - **Linux (beta):** systemd user timers, same commands; units live in
   `~/.config/systemd/user`. Timers stop at logout unless you run
-  `loginctl enable-linger $USER`. Install from source (above) — field reports
-  very welcome.
+  `loginctl enable-linger $USER` (the installer tells you if it's off). Failed
+  runs notify through `notify-send`. Field reports very welcome — the units are
+  tested, months of real desktop uptime aren't.
 - **Where things live:** tasks/logs/ledgers under `~/.local/share/every` by
   default. Honors `$XDG_DATA_HOME` (data) and `$XDG_CONFIG_HOME` (systemd units
   on Linux); `EVERY_HOME` overrides the data dir entirely. `NO_COLOR` is

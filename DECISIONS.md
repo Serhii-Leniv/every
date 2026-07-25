@@ -109,3 +109,38 @@ Dated log; append, don't rewrite.
   github.com/Serhii-Leniv/every, authored as Serhii-Leniv via a dedicated
   `github-serhii` ssh alias; repo-local identity + pre-commit/pre-push guard
   hooks prevent any other account from committing or pushing here.
+- **2026-07-25 — Linux distribution is a POSIX `install.sh`, not packages.**
+  `every` is one Ruby tree with no build step, so a `.deb`/`.rpm`/AUR set would
+  be three release pipelines and three review queues to ship a `cp -R` — and
+  each distro's Ruby packaging (`ruby` vs `ruby3.1` vs `ruby-full`) is a
+  dependency argument we'd have to win five times. The script installs a
+  self-contained tree at `<prefix>/lib/every` and symlinks `<prefix>/bin/every`
+  at it; default prefix `~/.local` (no sudo), `/usr/local` as root. Specifics
+  worth keeping:
+  - **The symlink is the interface.** `Runtime.bin` records
+    `File.expand_path($PROGRAM_NAME)` in each unit's `ExecStart`, which is the
+    *unresolved* symlink — so re-installing (upgrading) reaches already-scheduled
+    tasks without rewriting a single unit. `bin/every` finds its own `lib/` via
+    `__dir__` (realpath), so the symlink still resolves the tree.
+  - **Staged swap, never in-place.** New tree lands in `lib/every.new.$$`, the
+    old one moves aside, then two renames — an interrupted upgrade can't leave a
+    half-copied tree where a working install was. Same reasoning as
+    `Runtime.ensure!`.
+  - **Uninstall refuses while timers are live** (unless `--force`): pulling the
+    launcher out from under a running timer is a task that silently stops
+    working, which is the exact failure this tool exists to make impossible.
+    An install manifest inside the tree records what to remove, so completions
+    scattered across XDG dirs don't get orphaned.
+  - **Completions follow the prefix's audience:** a `$HOME` prefix writes to the
+    per-user dirs bash/fish actually read (zsh gets an fpath line, since there's
+    no user dir it reads by default); a system prefix writes the vendor dirs.
+  - Ruby is checked (2.6+, the macOS floor) with per-distro install hints before
+    anything is written, and the install ends by running `every version` — if
+    the tree can't load, the installer says so instead of leaving a broken
+    symlink. Exercised end to end in CI: install, upgrade, uninstall,
+    `curl | sh` download path, unwritable prefix, plus `shellcheck -s sh`.
+- **2026-07-25 — `.gitattributes` pins LF on everything Unix executes.** The
+  repo is edited from Windows, where `core.autocrlf=true` yields a CRLF
+  worktree; a CRLF shebang fails as `env: 'ruby\r': No such file or directory`
+  before any of our code runs. Found while testing the installer against a
+  Windows checkout mounted into a container.

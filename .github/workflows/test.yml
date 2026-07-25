@@ -28,3 +28,67 @@ jobs:
       # (Same script the `docker` workflow runs in a pinned container.)
       - name: systemd-analyze calendar validation
         run: ruby test/systemd_calendar_check.rb
+
+  # The Linux install path (install.sh) — the one users curl. Exercised end to
+  # end: install, run the installed binary, uninstall, and prove it left
+  # nothing behind.
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: POSIX sh lint
+        run: shellcheck -s sh install.sh
+      - name: Install (local checkout, user prefix)
+        run: sh install.sh --prefix "$HOME/opt/every"
+      - name: The installed every works
+        run: |
+          set -eux
+          test -L "$HOME/opt/every/bin/every"
+          "$HOME/opt/every/bin/every" version
+          "$HOME/opt/every/bin/every" list
+          test -f "$HOME/opt/every/lib/every/lib/every.rb"
+          test -f "$HOME/opt/every/share/man/man1/every.1"
+          test -f "$HOME/opt/every/share/zsh/site-functions/_every"
+          test -f "$HOME/.local/share/bash-completion/completions/every"
+          test -f "$HOME/.config/fish/completions/every.fish"
+      - name: Re-install over itself (upgrade path)
+        run: |
+          set -eux
+          sh install.sh --prefix "$HOME/opt/every"
+          "$HOME/opt/every/bin/every" version
+      - name: Uninstall leaves nothing behind
+        run: |
+          set -eux
+          sh install.sh --uninstall --prefix "$HOME/opt/every"
+          test ! -e "$HOME/opt/every/lib/every"
+          test ! -e "$HOME/opt/every/bin/every"
+          test ! -e "$HOME/opt/every/share/man/man1/every.1"
+          test ! -e "$HOME/.local/share/bash-completion/completions/every"
+          test ! -e "$HOME/.config/fish/completions/every.fish"
+      # The `curl … | sh` path: piped, so there's no checkout to install from —
+      # the script has to resolve the latest release and download it. Installs
+      # that release, not this commit.
+      - name: Piped install (download path)
+        run: |
+          set -eux
+          cat install.sh | sh -s -- --prefix "$HOME/opt/piped"
+          "$HOME/opt/piped/bin/every" version
+      # An explicit --version must beat the checkout sitting right there.
+      - name: Pinned version wins over the local tree
+        run: |
+          set -eux
+          sh install.sh --prefix "$HOME/opt/pinned" --version 0.1.3
+          "$HOME/opt/pinned/bin/every" version | grep -q "every 0.1.3"
+      # A prefix the user can't write to must fail with advice, not a stack of
+      # cp errors and a half-install.
+      - name: Unwritable prefix fails cleanly
+        run: |
+          set -eu
+          mkdir -p "$HOME/readonly"
+          chmod 500 "$HOME/readonly"
+          if sh install.sh --prefix "$HOME/readonly/every" >out.txt 2>&1; then
+            echo "expected the install to fail"; cat out.txt; exit 1
+          fi
+          cat out.txt
+          grep -q "sudo" out.txt
+          test ! -e "$HOME/readonly/every"

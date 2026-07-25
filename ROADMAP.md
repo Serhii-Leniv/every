@@ -39,8 +39,10 @@ These are real limitations, not hidden ones:
 
 ## Later
 
-- **Linux out of beta** — once field-tested; then a Linux install path that
-  isn't source-only.
+- **Linux out of beta** — once field-tested. (The install path is no longer
+  source-only: `install.sh`, one `curl | sh`. Distro packages — deb/rpm/AUR —
+  only if there's demand; see [DECISIONS.md](DECISIONS.md) for why the script
+  came first.)
 - **More schedule forms** — `monthly`, `last day`, `every 2 weeks`,
   `weekdays 9-18/1h` (bounded intervals).
 - **`every export` / `import`** — dump tasks to a portable file, re-create them

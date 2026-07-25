@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- **A Linux install path that isn't source-only** — `install.sh`:
+
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/Serhii-Leniv/every/main/install.sh | sh
+  ```
+
+  Installs into `~/.local` without sudo (`--prefix /usr/local` for system-wide),
+  places the man page and bash/zsh/fish completions where each shell looks, and
+  checks for a usable Ruby first with per-distro hints if it's missing. Re-run
+  it to upgrade — scheduled tasks keep firing, because units point at the
+  `<prefix>/bin/every` symlink rather than the tree behind it. `--uninstall`
+  removes exactly what was installed and refuses to strand a live timer.
+  POSIX `sh`, `shellcheck`-clean, exercised end to end in CI.
+- **`.gitattributes`** — pins LF on everything a Unix box executes, so a commit
+  from a Windows checkout can't ship a CRLF shebang that fails to run on Linux.
+
 ## 0.2.0 — 2026-07-25
 
 A Unix-philosophy pass: more composable, more optimized, more conventional.
